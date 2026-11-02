@@ -1,6 +1,6 @@
 import "@nomicfoundation/hardhat-toolbox";
 import { config as loadEnv } from "dotenv";
-import { HardhatUserConfig } from "hardhat/config";
+import type { HardhatUserConfig } from "hardhat/config";
 loadEnv();
 const config: HardhatUserConfig = {
   solidity: "0.8.24",
