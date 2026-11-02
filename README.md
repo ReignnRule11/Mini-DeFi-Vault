@@ -1,5 +1,8 @@
 # Mini DeFi Vault
 
+
+[![CI](https://github.com/ReignnRule11/Mini-DeFi-Vault/actions/workflows/ci.yml/badge.svg)](https://github.com/ReignnRule11/Mini-DeFi-Vault/actions/workflows/ci.yml)
+
 A full-stack Ethereum dApp for depositing and withdrawing test ETH from a personal vault on Sepolia.
 
 ## Stack
