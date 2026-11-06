@@ -1,0 +1,95 @@
+name: Deploy MiniVault to Sepolia
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-minivault-sepolia
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build, test, and deploy to Sepolia
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install Solidity dependencies
+        run: |
+          forge install OpenZeppelin/openzeppelin-contracts --no-commit
+          forge install foundry-rs/forge-std --no-commit
+
+      - name: Build contracts
+        run: forge build
+
+      - name: Run contract tests
+        run: forge test -vv
+
+      - name: Validate Sepolia configuration
+        env:
+          SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SEPOLIA_RPC_URL}" ]; then
+            echo "::error::Missing repository secret SEPOLIA_RPC_URL"
+            exit 1
+          fi
+          CHAIN_ID="$(cast chain-id --rpc-url "$SEPOLIA_RPC_URL")"
+          echo "Connected chain ID: $CHAIN_ID"
+          if [ "$CHAIN_ID" != "11155111" ]; then
+            echo "::error::RPC endpoint is not Sepolia (expected chain ID 11155111)"
+            exit 1
+          fi
+
+      - name: Deploy MiniVault
+        env:
+          SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PRIVATE_KEY}" ]; then
+            echo "::error::Missing repository secret PRIVATE_KEY"
+            exit 1
+          fi
+
+          forge script script/DeployMiniVault.s.sol:DeployMiniVault \
+            --rpc-url "$SEPOLIA_RPC_URL" \
+            --broadcast \
+            --slow
+
+          DEPLOYMENT_FILE="broadcast/DeployMiniVault.s.sol/11155111/run-latest.json"
+          if [ ! -f "$DEPLOYMENT_FILE" ]; then
+            echo "::error::Foundry deployment record was not created"
+            exit 1
+          fi
+
+          CONTRACT_ADDRESS="$(jq -r '.transactions[] | select(.transactionType == "CREATE") | .contractAddress' "$DEPLOYMENT_FILE" | head -n 1)"
+          if [ -z "$CONTRACT_ADDRESS" ] || [ "$CONTRACT_ADDRESS" = "null" ]; then
+            echo "::error::Could not extract the deployed MiniVault address"
+            exit 1
+          fi
+
+          echo "contract_address=$CONTRACT_ADDRESS" >> "$GITHUB_OUTPUT"
+          echo "MINIVAULT_ADDRESS=$CONTRACT_ADDRESS" >> "$GITHUB_ENV"
+          echo "Deployed MiniVault: $CONTRACT_ADDRESS"
+
+      - name: Publish deployment details
+        if: success()
+        run: |
+          {
+            echo "## Sepolia deployment successful"
+            echo
+            echo "- Contract: [$MINIVAULT_ADDRESS](https://sepolia.etherscan.io/address/$MINIVAULT_ADDRESS)"
+            echo "- Network: Sepolia (chain ID 11155111)"
+            echo "- Frontend environment variable: `VITE_VAULT_ADDRESS=$MINIVAULT_ADDRESS`"
+            echo
+            echo "This confirms deployment only. Complete live deposit/withdrawal tests separately."
+          } >> "$GITHUB_STEP_SUMMARY"
