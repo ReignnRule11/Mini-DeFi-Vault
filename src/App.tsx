@@ -32,28 +32,46 @@ export default function App() {
   };
   useEffect(()=>{ void refresh(); },[account]);
   const connect = async () => {
-    if (!window.ethereum) { setStatus("Install or open MetaMask to connect."); return; }
+    if (!window.ethereum) { setStatus("Open this site in the MetaMask mobile browser to connect."); return; }
     try {
+      const targetChain = "0xaa36a7";
+      let chain = await window.ethereum.request({method:"eth_chainId"});
+      if (chain !== targetChain) {
+        await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:targetChain}]});
+        chain = await window.ethereum.request({method:"eth_chainId"});
+      }
+      if (chain !== targetChain) throw new Error("MetaMask is not connected to Sepolia. Switch networks and try again.");
       const wallet = createWalletClient({chain:sepolia,transport:custom(window.ethereum)});
       const [who] = await wallet.requestAddresses();
-      const chain = await window.ethereum.request({method:"eth_chainId"});
-      if (chain !== "0xaa36a7") { await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:"0xaa36a7"}]}); }
+      if (!who) throw new Error("No wallet account was authorized.");
       setAccount(who); setStatus("Wallet connected to Sepolia."); await refresh(who);
-    } catch (e:any) { setStatus(e?.shortMessage || e?.message || "Wallet connection failed."); }
+    } catch (e:any) { setStatus(e?.shortMessage || e?.cause?.shortMessage || e?.message || "Wallet connection failed."); }
   };
   const transact = async (kind:"deposit"|"withdraw") => {
     if (!account || !window.ethereum || !address) return;
     if (!Number.isFinite(Number(amount)) || Number(amount)<=0) { setStatus("Enter an amount greater than zero."); return; }
     setBusy(true);
     try {
+      const chain = await window.ethereum.request({method:"eth_chainId"});
+      if (chain !== "0xaa36a7") {
+        await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:"0xaa36a7"}]});
+      }
+      const verifiedChain = await window.ethereum.request({method:"eth_chainId"});
+      if (verifiedChain !== "0xaa36a7") throw new Error("Switch MetaMask to Sepolia, then reconnect your wallet.");
+      const code = await publicClient.getBytecode({address});
+      if (!code || code === "0x") throw new Error("No contract code found at the configured address on Sepolia. Check VITE_VAULT_ADDRESS.");
       const wallet=createWalletClient({account,chain:sepolia,transport:custom(window.ethereum)});
       const hash= kind==="deposit"
         ? await wallet.writeContract({address,abi,functionName:"deposit",value:parseEther(amount)})
         : await wallet.writeContract({address,abi,functionName:"withdraw",args:[parseEther(amount)]});
       setStatus("Transaction submitted: "+hash);
-      await publicClient.waitForTransactionReceipt({hash});
+      const receipt = await publicClient.waitForTransactionReceipt({hash});
+      if (receipt.status !== "success") throw new Error("The transaction was mined but reverted. Check the transaction on Sepolia Etherscan.");
       setStatus("Transaction confirmed."); await refresh();
-    } catch(e:any) { setStatus(e?.shortMessage || e?.message || "Transaction failed."); }
+    } catch(e:any) {
+      const message = e?.shortMessage || e?.cause?.shortMessage || e?.details || e?.cause?.message || e?.message || "Transaction failed.";
+      setStatus(String(message).slice(0,240));
+    }
     finally { setBusy(false); }
   };
   return <main className="shell">
