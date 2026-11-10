@@ -62,6 +62,15 @@ jobs:
             exit 1
           fi
 
+          DEPLOYER_ADDRESS="$(cast wallet address --private-key "$PRIVATE_KEY")"
+          DEPLOYER_BALANCE_WEI="$(cast balance "$DEPLOYER_ADDRESS" --rpc-url "$SEPOLIA_RPC_URL")"
+          echo "Derived deployer address: $DEPLOYER_ADDRESS"
+          echo "Deployer Sepolia balance (wei): $DEPLOYER_BALANCE_WEI"
+          if [ "$DEPLOYER_BALANCE_WEI" = "0" ]; then
+            echo "::error::The account derived from PRIVATE_KEY has zero Sepolia ETH. Fund the derived deployer address shown above, then rerun."
+            exit 1
+          fi
+
           forge script script/DeployMiniVault.s.sol:DeployMiniVault \
             --rpc-url "$SEPOLIA_RPC_URL" \
             --broadcast \
