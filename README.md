@@ -61,6 +61,18 @@ The published site URL will be:
 
 The smart-contract deployment workflow is separate from frontend publishing. It uses the repository Actions secrets `PRIVATE_KEY` and `SEPOLIA_RPC_URL`. Never put either value in frontend environment variables or commit them to the repository.
 
+## Test coverage
+
+The Foundry suite covers:
+
+- Deposit and withdrawal accounting, including contract ETH balance consistency
+- Deposit and withdrawal event emission
+- Per-user balance isolation and unauthorized withdrawals
+- Rejection of zero-value deposits and zero-amount withdrawals
+- Reentrancy protection during withdrawal callbacks
+
+Run the suite with `forge test -vv` after installing the Foundry dependencies.
+
 ## Security
 
-This is an educational testnet project, not audited software. Use Sepolia test ETH only; do not deposit real funds.
+This is an educational testnet project, not audited software. Passing tests and successful Sepolia transactions do not constitute an independent security audit. Use Sepolia test ETH only; do not deposit real funds.
