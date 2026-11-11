@@ -20,7 +20,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+        uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf
+        with:
+          version: v1.9.0
 
       - name: Install the exact deployment dependencies
         run: |
@@ -53,6 +55,6 @@ jobs:
             --rpc-url "${SEPOLIA_RPC_URL}" \
             --chain-id 11155111 \
             --verifier blockscout \
-            --verifier-url https://eth-sepolia.blockscout.com/api/ \
+            --verifier-url https://eth-sepolia.blockscout.com/api? \
             --compiler-version v0.8.24+commit.e11b9ed9 \
             --watch
