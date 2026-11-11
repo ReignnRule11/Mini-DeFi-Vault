@@ -73,6 +73,14 @@ The Foundry suite covers:
 
 Run the suite with `forge test -vv` after installing the Foundry dependencies.
 
+## Release verification status
+
+- Sepolia deployment and manual deposit/withdrawal flows have been exercised.
+- On-chain aggregate accounting (`address(vault).balance == totalDeposits()`) and the connected user's recorded balance have been manually compared and matched.
+- The deployed address is currently reported as **unverified** by Blockscout. Verify the source on an explorer using the exact compiler settings and dependency versions before treating the deployment as source-verified.
+- The frontend listens for wallet account and chain changes, clears stale balance displays, and checks the active account/network again before submitting transactions.
+- CI runs the TypeScript/Vite build and Foundry contract build/tests. The unused, unconfigured Hardhat test file has been removed so the documented test path is unambiguous.
+
 ## Security
 
 This is an educational testnet project, not audited software. Passing tests and successful Sepolia transactions do not constitute an independent security audit. Use Sepolia test ETH only; do not deposit real funds.
