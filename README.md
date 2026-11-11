@@ -75,13 +75,17 @@ The Foundry suite covers:
 
 Run the suite with `forge test -vv` after installing the Foundry dependencies.
 
-## Release verification status
+## Verified release and current on-chain state
 
-- Sepolia deployment and manual deposit/withdrawal flows have been exercised.
-- On-chain aggregate accounting (`address(vault).balance == totalDeposits()`) and the connected user's recorded balance have been manually compared and matched.
-- The deployed address is currently reported as **unverified** by Blockscout. Verify the source on an explorer using the exact compiler settings and dependency versions before treating the deployment as source-verified.
-- The frontend listens for wallet account and chain changes, clears stale balance displays, and checks the active account/network again before submitting transactions.
-- CI runs the TypeScript/Vite build and Foundry contract build/tests. The unused, unconfigured Hardhat test file has been removed so the documented test path is unambiguous.
+- **Network:** Ethereum Sepolia (chain ID `11155111`); this is a testnet deployment, not Ethereum mainnet.
+- **Deployment:** `MiniVault` was created on 2026-11-10 at [0x601491dace86294f9dfc3adcff3c739ae5aa4a1c](https://sepolia.etherscan.io/address/0x601491dace86294f9dfc3adcff3c739ae5aa4a1c).
+- **Source verification:** fully verified on [Blockscout](https://eth-sepolia.blockscout.com/address/0x601491dace86294f9dfc3adcff3c739ae5aa4a1c) on 2026-11-11 at 13:06:39 UTC. Explorer metadata reports Solidity `0.8.24`, optimizer enabled, 200 runs, and fully verified source.
+- **Successful transaction exercise:** the explorer records a successful `0.001 ETH` deposit at 2026-11-11 12:39:36 UTC ([transaction](https://eth-sepolia.blockscout.com/tx/0x7ee2021f1679af80ff3b66ee4758e9b76bf9da6d201f78fc213b96297a9f0af8)) followed by a successful `0.001 ETH` withdrawal at 12:40:24 UTC ([transaction](https://eth-sepolia.blockscout.com/tx/0x8dc8f8a21688e198cf53c02757ded734ad908f52e7fb3082ac3836ddaf435b0e)).
+- **Latest state checked:** `totalDeposits()` returned `0` and the tested wallet's recorded vault balance returned `0` when queried on 2026-11-11. This is a completed deposit/withdrawal test cycle, not evidence of ongoing TVL or active customer funds. The explorer also records earlier out-of-gas attempts during initial testing; subsequent deposit and withdrawal transactions succeeded.
+- **Automated validation:** the repository CI passed on the current main commit, including the TypeScript/Vite production build, Foundry build and Foundry tests ([CI run](https://github.com/ReignnRule11/Mini-DeFi-Vault/actions/runs/43026016645)). The manual source-verification workflow also completed successfully ([verification run](https://github.com/ReignnRule11/Mini-DeFi-Vault/actions/runs/43026117198)).
+- The frontend listens for wallet account and chain changes, clears stale balance displays, checks the active account/network before submitting transactions, and confirms transaction receipts before reporting success.
+
+This is a functional educational testnet dApp with a verified contract source and a tested deposit/withdrawal flow. **It has not undergone an independent security audit and is not approved for real funds or production financial use.**
 
 ## Security
 
