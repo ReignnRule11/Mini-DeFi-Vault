@@ -21,9 +21,10 @@ contract ReentrantWithdrawer {
     }
 
     receive() external payable {
-        try vault.withdraw(1 wei) {
-            revert("Reentrant withdrawal unexpectedly succeeded");
-        } catch {
+        (bool success, ) = address(vault).call(
+            abi.encodeCall(MiniVault.withdraw, (1 wei))
+        );
+        if (!success) {
             reentryBlocked = true;
         }
     }
