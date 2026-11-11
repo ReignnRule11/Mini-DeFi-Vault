@@ -15,7 +15,7 @@ jobs:
       - run: npm install
       - run: npm run build
       - uses: foundry-rs/foundry-toolchain@v1
-      - run: forge install OpenZeppelin/openzeppelin-contracts --no-commit
-      - run: forge install foundry-rs/forge-std --no-commit
+      - run: forge install OpenZeppelin/openzeppelin-contracts@cab19933c33c2ad1d4c7a84864a3601dddfd16f3 --no-commit
+      - run: forge install foundry-rs/forge-std@f3dae6e6ee381f25eb6a246f7da9b85c91a68219 --no-commit
       - run: forge build
       - run: forge test
