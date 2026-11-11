@@ -12,7 +12,6 @@ permissions:
 
 jobs:
   generate-lockfile:
-    if: ${{ !hashFiles('package-lock.json') }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out pull request branch
@@ -28,7 +27,7 @@ jobs:
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Validate clean install and frontend build
         run: |
-          npm ci --ignore-scripts --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npm run build
       - name: Commit lockfile to pull request branch
         env:
