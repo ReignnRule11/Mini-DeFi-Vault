@@ -62,8 +62,8 @@ export default function App() {
       if (!code || code === "0x") throw new Error("No contract code found at the configured address on Sepolia. Check VITE_VAULT_ADDRESS.");
       const wallet=createWalletClient({account,chain:sepolia,transport:custom(window.ethereum)});
       const hash= kind==="deposit"
-        ? await wallet.writeContract({address,abi,functionName:"deposit",value:parseEther(amount),gas:100_000n})
-        : await wallet.writeContract({address,abi,functionName:"withdraw",args:[parseEther(amount)],gas:180_000n});
+        ? await wallet.writeContract({address,abi,functionName:"deposit",value:parseEther(amount),gas:250_000n})
+        : await wallet.writeContract({address,abi,functionName:"withdraw",args:[parseEther(amount)],gas:300_000n});
       setStatus("Transaction submitted: "+hash);
       const receipt = await publicClient.waitForTransactionReceipt({hash});
       if (receipt.status !== "success") throw new Error("The transaction was mined but reverted. Check the transaction on Sepolia Etherscan.");
