@@ -1,0 +1,42 @@
+name: Bootstrap npm lockfile
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "package.json"
+      - ".github/workflows/bootstrap-lockfile.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  generate-lockfile:
+    if: ${{ !hashFiles('package-lock.json') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate npm lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Validate clean install and frontend build
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Commit lockfile to pull request branch
+        env:
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore: add reproducible npm lockfile"
+          git push origin "HEAD:${BRANCH_NAME}"
