@@ -35,14 +35,16 @@ VITE_SEPOLIA_CHAIN_ID=11155111
 
 Do not commit `.env.local`, private keys, or seed phrases.
 
-For the Solidity toolchain, install Foundry and run:
+For reproducible Solidity builds, use Foundry 1.9.0, Solidity 0.8.24, and the exact dependency revisions used for deployment:
 
 ```bash
-forge install OpenZeppelin/openzeppelin-contracts
-forge install foundry-rs/forge-std
+forge install OpenZeppelin/openzeppelin-contracts@cab19933c33c2ad1d4c7a84864a3601dddfd16f3
+forge install foundry-rs/forge-std@f3dae6e6ee381f25eb6a246f7da9b85c91a68219
 forge build
 forge test
 ```
+
+The compiler optimizer is enabled with 200 runs in `foundry.toml`. The **Verify MiniVault on Sepolia** workflow submits the existing deployment for Blockscout source verification; it does not redeploy the contract.
 
 ## GitHub Pages deployment
 
